@@ -3,8 +3,10 @@
 #include <ur_rtde/rtde_control_interface.h>
 #include <ur_rtde/rtde_receive_interface.h>
 #include <cmath>        // std::abs
+#include <thread>
+#include <chrono>
 using namespace ur_rtde;
-
+using namespace std::chrono;
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
@@ -219,17 +221,16 @@ void SimulateSystem::runSimulation()
     RTDEReceiveInterface rtde_receive("127.0.0.1");
     std::vector<double> init_q = rtde_receive.getActualQ();
 
-    float Ts = 0.002; //sample Time
+    float sT = 0.002; //sample Time
     float Tstop = 20;
-    float steps = Tstop / Ts;
-    int n = 5;
+    float steps = Tstop / sT;
+	printf("steps %f\n", steps);
 
     int max_vel = 3	;
-    std::vector<double> startpos = {0, -1.57, 1.57, 0, 0, 0};
+    std::vector<double> startpos = {-1.57, -1.57, 1.57, 0, 0, 0};
     std::vector<double> joint_speed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     rtde_control.moveJ(startpos);
-    unsigned int microsecond = 1000000;
-    usleep(3 * microsecond);//sleeps for 3 second
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     //Next step --> Vergleichen von Robo und Berechnung
 	//printf("%i\n",n);
@@ -252,15 +253,23 @@ void SimulateSystem::runSimulation()
 			//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
 			//std::cout << "Here is simulatedOutputSequence.col(j):\n" << simulatedOutputSequence.col(j) << std::endl;
 		}
-		joint_speed[0] = sgn<long>(inputSequence.coeff(0,j))*max_vel;
-		//std::cout << "Here is std::abs(inputSequence(0,j)):\n" << std::abs(inputSequence(0,j)) << std::endl;
+		
+		joint_speed[0] = sgn<float>(inputSequence(0,j))*max_vel;
+		//std::cout << "Here is \n joint_speed.at(0): " << joint_speed.at(0) << " | std::abs(inputSequence(0,j): " << std::abs(inputSequence(0,j)) << std::endl;
+		auto t_start = high_resolution_clock::now();
 		rtde_control.speedJ(joint_speed, std::abs(inputSequence(0,j)),0.0001);
-        YY.push_back(rtde_receive.getActualQ().at(0));
+		auto t_stop = high_resolution_clock::now();
+    	auto t_duration = std::chrono::duration<double>(t_stop - t_start);
+		if (t_duration.count() < sT)
+		{
+			std::this_thread::sleep_for(std::chrono::duration<double>(sT - t_duration.count()));
+		}
+		YY.push_back(rtde_receive.getActualQ().at(0));
 		
 	}
 	rtde_control.speedStop();
     rtde_control.stopScript();
-	//rtde_receive.disconnect();
+	rtde_receive.disconnect();
 
 	//float MAPE = mean(abs((YY-YSIM)./YY))*100; %mean absolute percentage error
 	float result = 0;
