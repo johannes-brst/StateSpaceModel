@@ -7,6 +7,7 @@
 #include <chrono>
 using namespace ur_rtde;
 using namespace std::chrono;
+
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
@@ -225,37 +226,37 @@ void SimulateSystem::runSimulation()
     float Tstop = 20;
     float steps = Tstop / sT;
 	printf("steps %f\n", steps);
-
-    int max_vel = 3	;
-    std::vector<double> startpos = {-1.57, -1.57, 1.57, 0, 0, 0};
+	float inputDelay = 0.00;
+	float outputDelay = 0.00;
+	float stepInputDelay = inputDelay / sT;
+	float stepOutputDelay = outputDelay / sT;
+    int max_vel = 1;
+    std::vector<double> startpos = {-2.57, -1.57, 1.57, 0, 0, 0};
     std::vector<double> joint_speed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     rtde_control.moveJ(startpos);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-    //Next step --> Vergleichen von Robo und Berechnung
-	//printf("%i\n",n);
-	//printf("%i\n",m);
-	//printf("%i\n",r);
-	
+	// obwohl hier zeit disrete simuliert wird ergeben die DAten noch keinen Sinn? Doch tustin methode anwenden? was genau passiert dabei?
+	// https://de.mathworks.com/help/control/ref/c2d.html
+	// https://matlab.mathworks.com/
+	// https://de.mathworks.com/help/control/ug/continuous-discrete-conversion-methods.html
+	simulatedStateSequence.col(0) = x0;
+	simulatedOutputSequence.col(0) = C * x0;
+
 	for (int j = 0; j < steps; j++)
-	{	
-		
+	{		
 		//printf("\n");
-		if (j == 0)
-		{
-			simulatedStateSequence.col(j) = x0;
-			simulatedOutputSequence.col(j) = C * x0;
-		}
-		else
-		{
-			simulatedStateSequence.col(j) = A * simulatedStateSequence.col(j-1) + B * inputSequence.col(j-1);
-			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j);
-			//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
-			//std::cout << "Here is simulatedOutputSequence.col(j):\n" << simulatedOutputSequence.col(j) << std::endl;
-		}
 		
+		if (((j - stepInputDelay) > 0) && (j - stepOutputDelay) > 0)
+		{
+			simulatedStateSequence.col(j+1) = A * simulatedStateSequence.col(j) + B * inputSequence.col(j - stepInputDelay);
+			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
+		}	
+		//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
+		//std::cout << "Here is simulatedOutputSequence.col(j):\n" << simulatedOutputSequence.col(j) << std::endl;
+	
 		joint_speed[0] = sgn<float>(inputSequence(0,j))*max_vel;
-		//std::cout << "Here is \n joint_speed.at(0): " << joint_speed.at(0) << " | std::abs(inputSequence(0,j): " << std::abs(inputSequence(0,j)) << std::endl;
+		//std::cout << "Here is \n joint_speed.at(0): " << joint_speed.at(0) << " | inputSequence(0,j): " << inputSequence(0,j) << std::endl;
 		auto t_start = high_resolution_clock::now();
 		rtde_control.speedJ(joint_speed, std::abs(inputSequence(0,j)),0.0001);
 		auto t_stop = high_resolution_clock::now();
@@ -274,7 +275,9 @@ void SimulateSystem::runSimulation()
 	//float MAPE = mean(abs((YY-YSIM)./YY))*100; %mean absolute percentage error
 	float result = 0;
 	for (int i = 0; i < YY.size(); i++){
+		
 		result =+ std::abs((YY.at(i) - simulatedOutputSequence(0,i))/YY.at(i));
+		printf("simulatedOutputSequence(0,i): %f\n",simulatedOutputSequence(0,i));
 	}
 	result = result / YY.size();
 	result = result * 100;
