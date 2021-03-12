@@ -273,8 +273,8 @@ void SimulateSystem::runSimulation()
 		
 		if (((j - stepInputDelay) >= 0) && (j - stepOutputDelay) >= 0)
 		{
-			simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j - stepInputDelay);
-			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
+			//simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j - stepInputDelay);
+			//simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
 		}	
 		//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
 		//std::cout << "Here is simulatedOutputSequence.col(j):\n" << simulatedOutputSequence.col(j) << std::endl;
