@@ -2,6 +2,9 @@
 #include <iostream>
 #include <ur_rtde/rtde_control_interface.h>
 #include <ur_rtde/rtde_receive_interface.h>
+#include <eigen3/unsupported/Eigen/MatrixFunctions>
+#include <eigen3/Eigen/LU>
+#include <eigen3/Eigen/QR>    
 #include <cmath>        // std::abs
 #include <thread>
 #include <chrono>
@@ -107,12 +110,26 @@ void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string 
 		fileSimulatedStateSequence.close();
 	}
 
-	std::ofstream fileSimulatedOutputSequence(simulatedOutputSequenceFile);
+	/*std::ofstream fileSimulatedOutputSequence(simulatedOutputSequenceFile);
 	if (fileSimulatedOutputSequence.is_open())
 	{
 		fileSimulatedOutputSequence << simulatedOutputSequence.format(CSVFormat);
 		fileSimulatedOutputSequence.close();
+	}*/
+	std::ofstream fileSimulatedOutputSequence(simulatedOutputSequenceFile);
+	fileSimulatedOutputSequence.open(simulatedOutputSequenceFile, std::ofstream::out | std::ofstream::trunc);
+	fileSimulatedOutputSequence.close();
+	fileSimulatedOutputSequence.open(simulatedOutputSequenceFile, std::ofstream::out);
+	if (fileSimulatedOutputSequence.is_open())
+	{
+		// Send data to the stream
+		for(int i = 0; i < simulatedOutputSequence.size(); ++i)
+		{
+			fileSimulatedOutputSequence << simulatedOutputSequence(0,i) << "\n";
+		}
+		fileSimulatedOutputSequence.close();
 	}
+
 	std::ofstream fileYY(YYFile);
 	fileYY.open(YYFile, std::ofstream::out | std::ofstream::trunc);
 	fileYY.close();
@@ -222,24 +239,31 @@ void SimulateSystem::runSimulation()
     RTDEReceiveInterface rtde_receive("127.0.0.1");
     std::vector<double> init_q = rtde_receive.getActualQ();
 
-    float sT = 0.002; //sample Time
+    float Ts = 0.002; //sample Time
     float Tstop = 20;
-    float steps = Tstop / sT;
+    float steps = Tstop / Ts;
 	printf("steps %f\n", steps);
 	float inputDelay = 0.00;
 	float outputDelay = 0.00;
-	float stepInputDelay = inputDelay / sT;
-	float stepOutputDelay = outputDelay / sT;
+	float stepInputDelay = inputDelay / Ts;
+	float stepOutputDelay = outputDelay / Ts;
     int max_vel = 1;
     std::vector<double> startpos = {-2.57, -1.57, 1.57, 0, 0, 0};
     std::vector<double> joint_speed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     rtde_control.moveJ(startpos);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-	// obwohl hier zeit disrete simuliert wird ergeben die DAten noch keinen Sinn? Doch tustin methode anwenden? was genau passiert dabei?
-	// https://de.mathworks.com/help/control/ref/c2d.html
-	// https://matlab.mathworks.com/
-	// https://de.mathworks.com/help/control/ug/continuous-discrete-conversion-methods.html
+
+	// discretize state space using https://en.wikipedia.org/wiki/Discretization
+	Matrix2d i;
+	i << 1, 0,
+		 0, 1;
+	Matrix2d Ad;
+	Ad = (A*Ts).exp();
+	std::cout << "Ad is:\n" << Ad << std::endl;
+	MatrixXd Bd(2,1);
+	Bd = (A.completeOrthogonalDecomposition().pseudoInverse() * (Ad - i)) * B;//Ts*B;
+	std::cout << "Bd  is:\n" << Bd  << std::endl;
 	simulatedStateSequence.col(0) = x0;
 	simulatedOutputSequence.col(0) = C * x0;
 
@@ -247,9 +271,9 @@ void SimulateSystem::runSimulation()
 	{		
 		//printf("\n");
 		
-		if (((j - stepInputDelay) > 0) && (j - stepOutputDelay) > 0)
+		if (((j - stepInputDelay) >= 0) && (j - stepOutputDelay) >= 0)
 		{
-			simulatedStateSequence.col(j+1) = A * simulatedStateSequence.col(j) + B * inputSequence.col(j - stepInputDelay);
+			simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j - stepInputDelay);
 			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
 		}	
 		//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
@@ -261,9 +285,9 @@ void SimulateSystem::runSimulation()
 		rtde_control.speedJ(joint_speed, std::abs(inputSequence(0,j)),0.0001);
 		auto t_stop = high_resolution_clock::now();
     	auto t_duration = std::chrono::duration<double>(t_stop - t_start);
-		if (t_duration.count() < sT)
+		if (t_duration.count() < Ts)
 		{
-			std::this_thread::sleep_for(std::chrono::duration<double>(sT - t_duration.count()));
+			std::this_thread::sleep_for(std::chrono::duration<double>(Ts - t_duration.count()));
 		}
 		YY.push_back(rtde_receive.getActualQ().at(0));
 		
@@ -277,7 +301,7 @@ void SimulateSystem::runSimulation()
 	for (int i = 0; i < YY.size(); i++){
 		
 		result =+ std::abs((YY.at(i) - simulatedOutputSequence(0,i))/YY.at(i));
-		printf("simulatedOutputSequence(0,i): %f\n",simulatedOutputSequence(0,i));
+		//printf("simulatedOutputSequence(0,i): %f\n",simulatedOutputSequence(0,i));
 	}
 	result = result / YY.size();
 	result = result * 100;

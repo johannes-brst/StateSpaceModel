@@ -249,6 +249,13 @@ stateSpace/CMakeFiles/stateSpace.dir/SimulateSystem.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/eigen3/unsupported/Eigen/MatrixFunctions
+ /usr/local/include/eigen3/unsupported/Eigen/src/MatrixFunctions/MatrixExponential.h
+ /usr/local/include/eigen3/unsupported/Eigen/src/MatrixFunctions/MatrixFunction.h
+ /usr/local/include/eigen3/unsupported/Eigen/src/MatrixFunctions/MatrixLogarithm.h
+ /usr/local/include/eigen3/unsupported/Eigen/src/MatrixFunctions/MatrixPower.h
+ /usr/local/include/eigen3/unsupported/Eigen/src/MatrixFunctions/MatrixSquareRoot.h
+ /usr/local/include/eigen3/unsupported/Eigen/src/MatrixFunctions/StemFunction.h
  /usr/local/include/ur_rtde/rtde.h
  /usr/local/include/ur_rtde/rtde_control_interface.h
  /usr/local/include/ur_rtde/rtde_export.h
