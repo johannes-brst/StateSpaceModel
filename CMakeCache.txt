@@ -181,11 +181,17 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Dependencies for the target
+MoveUr5e_LIB_DEPENDS:STATIC=general;ur_rtde::rtde;
+
 //Value Computed by CMake
 SimpleController_BINARY_DIR:STATIC=/home/johnny/catkin_ws/src/StateSpaceModel
 
 //Value Computed by CMake
 SimpleController_SOURCE_DIR:STATIC=/home/johnny/catkin_ws/src/StateSpaceModel
+
+//Dependencies for the target
+moveur5e_LIB_DEPENDS:STATIC=general;ur_rtde::rtde;
 
 //Dependencies for the target
 stateSpace_LIB_DEPENDS:STATIC=general;ur_rtde::rtde;
@@ -292,7 +298,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=3
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

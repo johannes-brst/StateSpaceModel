@@ -29,13 +29,13 @@ SimulateSystem::SimulateSystem()
 	timeRowVector.resize(1, 1); timeRowVector.setZero();
 }
 
-SimulateSystem::SimulateSystem(MatrixXd Amatrix, MatrixXd Bmatrix, MatrixXd Cmatrix, MatrixXd Dmatrix, MatrixXd initialState, MatrixXd inputSequenceMatrix)
+SimulateSystem::SimulateSystem(MatrixXd Amatrix, MatrixXd Bmatrix, MatrixXd Cmatrix, MatrixXd Dmatrix, MatrixXd initialState, MatrixXd inputSequenceMatrix, MatrixXd YYMatrix)
 {
 	A = Amatrix; B = Bmatrix; C = Cmatrix; x0 = initialState; inputSequence = inputSequenceMatrix;
 	n = A.rows();
 	m = B.cols();
 	r = C.rows();
-	YY = {};
+	YY = YYMatrix;
 	timeSamples = inputSequence.cols();
 
 	simulatedOutputSequence.resize(r, timeSamples); simulatedOutputSequence.setZero();
@@ -110,12 +110,6 @@ void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string 
 		fileSimulatedStateSequence.close();
 	}
 
-	/*std::ofstream fileSimulatedOutputSequence(simulatedOutputSequenceFile);
-	if (fileSimulatedOutputSequence.is_open())
-	{
-		fileSimulatedOutputSequence << simulatedOutputSequence.format(CSVFormat);
-		fileSimulatedOutputSequence.close();
-	}*/
 	std::ofstream fileSimulatedOutputSequence(simulatedOutputSequenceFile);
 	fileSimulatedOutputSequence.open(simulatedOutputSequenceFile, std::ofstream::out | std::ofstream::trunc);
 	fileSimulatedOutputSequence.close();
@@ -130,7 +124,7 @@ void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string 
 		fileSimulatedOutputSequence.close();
 	}
 
-	std::ofstream fileYY(YYFile);
+	/*std::ofstream fileYY(YYFile);
 	fileYY.open(YYFile, std::ofstream::out | std::ofstream::trunc);
 	fileYY.close();
 	fileYY.open(YYFile, std::ofstream::out);
@@ -139,24 +133,14 @@ void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string 
 		// Send data to the stream
 		for(int i = 0; i < YY.size(); ++i)
 		{
-			fileYY << YY.at(i) << "\n";
+			fileYY << YY(i,0) << "\n";
 		}
 		fileYY.close();
-	}
-
-    
-    
-
-
+	}*/
 }
 
 MatrixXd SimulateSystem::openData(std::string fileToOpen)
 {
-
-	// the inspiration for creating this function was drawn from here (I did NOT copy and paste the code)
-	// https://stackoverflow.com/questions/34247057/how-to-read-csv-file-and-assign-to-eigen-matrix
-	// NOTE THAT THIS FUNCTION IS CALLED BY THE FUNCTION: SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string x0File, std::string inputSequenceFile)
-	
 	// the input is the file: "fileToOpen.csv":
 	// a,b,c
 	// d,e,f
@@ -202,7 +186,7 @@ MatrixXd SimulateSystem::openData(std::string fileToOpen)
 }
 
 
-void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string Dfile,std::string x0File, std::string inputSequenceFile)
+void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string Dfile,std::string x0File, std::string inputSequenceFile, std::string YYFile)
 {
 	// this function acts as a constructor in some way. 
 	// call this function after a default constructor is being called
@@ -213,7 +197,7 @@ void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::str
 	D = openData(Dfile);
 	x0= openData(x0File);
 	inputSequence=openData(inputSequenceFile);
-
+	YY= openData(YYFile);
 	n = A.rows();
 	m = B.cols();
 	r = C.rows();
@@ -235,9 +219,9 @@ void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::str
 void SimulateSystem::runSimulation()
 {
 	
-    RTDEControlInterface rtde_control("127.0.0.1");
+    /*RTDEControlInterface rtde_control("127.0.0.1");
     RTDEReceiveInterface rtde_receive("127.0.0.1");
-    std::vector<double> init_q = rtde_receive.getActualQ();
+    std::vector<double> init_q = rtde_receive.getActualQ();*/
 
     float Ts = 0.002; //sample Time
     float Tstop = 20;
@@ -248,9 +232,9 @@ void SimulateSystem::runSimulation()
 	float stepInputDelay = inputDelay / Ts;
 	float stepOutputDelay = outputDelay / Ts;
     int max_vel = 1;
-    std::vector<double> startpos = {-2.57, -1.57, 1.57, 0, 0, 0};
-    std::vector<double> joint_speed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    rtde_control.moveJ(startpos);
+    //std::vector<double> startpos = {-2.57, -1.57, 1.57, 0, 0, 0};
+    //std::vector<double> joint_speed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    //rtde_control.moveJ(startpos);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
 
@@ -273,13 +257,13 @@ void SimulateSystem::runSimulation()
 		
 		if (((j - stepInputDelay) >= 0) && (j - stepOutputDelay) >= 0)
 		{
-			//simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j - stepInputDelay);
-			//simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
+			simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j - stepInputDelay);
+			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
 		}	
 		//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
 		//std::cout << "Here is simulatedOutputSequence.col(j):\n" << simulatedOutputSequence.col(j) << std::endl;
 	
-		joint_speed[0] = sgn<float>(inputSequence(0,j))*max_vel;
+		/*joint_speed[0] = sgn<float>(inputSequence(0,j))*max_vel;
 		//std::cout << "Here is \n joint_speed.at(0): " << joint_speed.at(0) << " | inputSequence(0,j): " << inputSequence(0,j) << std::endl;
 		auto t_start = high_resolution_clock::now();
 		rtde_control.speedJ(joint_speed, std::abs(inputSequence(0,j)),0.0001);
@@ -289,21 +273,21 @@ void SimulateSystem::runSimulation()
 		{
 			std::this_thread::sleep_for(std::chrono::duration<double>(Ts - t_duration.count()));
 		}
-		YY.push_back(rtde_receive.getActualQ().at(0));
+		YY.push_back(rtde_receive.getActualQ().at(0));*/
 		
 	}
-	rtde_control.speedStop();
+	/*rtde_control.speedStop();
     rtde_control.stopScript();
-	rtde_receive.disconnect();
+	rtde_receive.disconnect();*/
 
 	//float MAPE = mean(abs((YY-YSIM)./YY))*100; %mean absolute percentage error
-	float result = 0;
-	for (int i = 0; i < YY.size(); i++){
+	/*float result = 0;
+	for (int i = 0; i < YY.cols(); i++){
 		
-		result =+ std::abs((YY.at(i) - simulatedOutputSequence(0,i))/YY.at(i));
+		result =+ std::abs((YY(0,i) - simulatedOutputSequence(0,i))/YY(0,i));
 		//printf("simulatedOutputSequence(0,i): %f\n",simulatedOutputSequence(0,i));
 	}
-	result = result / YY.size();
+	result = result / YY.cols();
 	result = result * 100;
-	printf("MAPE = %f\n", result);
+	printf("MAPE = %f\n", result);*/
 }	

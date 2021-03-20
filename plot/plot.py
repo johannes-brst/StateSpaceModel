@@ -23,6 +23,14 @@ with open('csv/simulatedOutputSequenceFileOutput_save.csv','r') as csvfile:
         YSim.append(float(row[0]))
         row_number+=1
 
+result = 0
+for i in range(len(YY)):  
+    result =+ np.abs((YY[i] - YSim[i])/YY[i])
+
+result = result / len(YY)
+result = result * 100
+print("MAPE = " + str(result) + "\n")
+
 plt.plot(YY, label='Ur5e')
 plt.plot(YSim, label='Simluation')
 plt.xlabel('t')

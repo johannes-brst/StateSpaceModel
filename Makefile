@@ -136,6 +136,19 @@ stateSpace/fast:
 	$(MAKE) -f stateSpace/CMakeFiles/stateSpace.dir/build.make stateSpace/CMakeFiles/stateSpace.dir/build
 .PHONY : stateSpace/fast
 
+#=============================================================================
+# Target rules for targets named moveur5e
+
+# Build rule for target.
+moveur5e: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 moveur5e
+.PHONY : moveur5e
+
+# fast build rule for target.
+moveur5e/fast:
+	$(MAKE) -f stateSpace/moveur5e/CMakeFiles/moveur5e.dir/build.make stateSpace/moveur5e/CMakeFiles/moveur5e.dir/build
+.PHONY : moveur5e/fast
+
 SimpleController.o: SimpleController.cpp.o
 
 .PHONY : SimpleController.o
@@ -173,6 +186,7 @@ help:
 	@echo "... SimpleController"
 	@echo "... edit_cache"
 	@echo "... stateSpace"
+	@echo "... moveur5e"
 	@echo "... SimpleController.o"
 	@echo "... SimpleController.i"
 	@echo "... SimpleController.s"

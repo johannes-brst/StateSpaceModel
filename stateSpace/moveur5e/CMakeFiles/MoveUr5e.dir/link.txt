@@ -1,0 +1,2 @@
+/usr/bin/ar qc libMoveUr5e.a  CMakeFiles/MoveUr5e.dir/MoveUr5e.cpp.o
+/usr/bin/ranlib libMoveUr5e.a

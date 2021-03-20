@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/johnny/catkin_ws/src/StateSpaceModel/stateSpace/MoveUr5e.cpp
+MoveUr5e.h
+/home/johnny/catkin_ws/src/StateSpaceModel/stateSpace/MoveUr5e.h
+iostream
+-
+ur_rtde/rtde_control_interface.h
+-
+ur_rtde/rtde_receive_interface.h
+-
+cmath
+-
+thread
+-
+chrono
+-
+
+/home/johnny/catkin_ws/src/StateSpaceModel/stateSpace/MoveUr5e.h
+iostream
+-
+eigen3/Eigen/Dense
+-
+tuple
+-
+string
+-
+fstream
+-
+vector
+-
+ur_rtde/rtde_control_interface.h
+-
+ur_rtde/rtde_receive_interface.h
+-
+

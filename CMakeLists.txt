@@ -10,3 +10,7 @@ target_link_libraries(SimpleController PUBLIC stateSpace
                           "${PROJECT_BINARY_DIR}"
                           "${PROJECT_SOURCE_DIR}/stateSpace"
                           )
+target_link_libraries(SimpleController PUBLIC moveur5e
+                          "${PROJECT_BINARY_DIR}"
+                          "${PROJECT_SOURCE_DIR}/stateSpace/moveur5e"
+                          )

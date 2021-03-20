@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include "stateSpace/SimulateSystem.h"
+#include "stateSpace/moveur5e/MoveUr5e.h"
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 
@@ -18,9 +19,11 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+	MoveUr5e ur5e;
+	ur5e.move();
     string path_to_csv = "csv/";
     SimulateSystem Simulation3;
-	Simulation3.openFromFile(path_to_csv + "AFile.csv", path_to_csv + "BFile.csv", path_to_csv + "CFile.csv",path_to_csv + "DFile.csv", path_to_csv +"x0File.csv",path_to_csv + "inputFile.csv");
+	Simulation3.openFromFile(path_to_csv + "AFile.csv", path_to_csv + "BFile.csv", path_to_csv + "CFile.csv",path_to_csv + "DFile.csv", path_to_csv +"x0File.csv",path_to_csv + "inputFile.csv",path_to_csv + "YY.csv");
 	
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	Simulation3.runSimulation();
