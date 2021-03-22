@@ -116,11 +116,12 @@ void MoveUr5e::move()
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
 
-
+	
 	for (int j = 0; j < steps; j++)
 	{		
 		//printf("\n");
 		joint_speed[0] = sgn<float>(inputSequence(0,j))*max_vel;
+		std::cout << "Here is joint_speed[0]:\n" << joint_speed[0] << std::endl;
 		auto t_start = high_resolution_clock::now();
 		rtde_control.speedJ(joint_speed, std::abs(inputSequence(0,j)),0.0001);
 		auto t_stop = high_resolution_clock::now();

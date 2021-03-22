@@ -227,8 +227,8 @@ void SimulateSystem::runSimulation()
     float Tstop = 20;
     float steps = Tstop / Ts;
 	printf("steps %f\n", steps);
-	float inputDelay = 0.00;
-	float outputDelay = 0.00;
+	float inputDelay = 0.004;
+	float outputDelay = 0.004;
 	float stepInputDelay = inputDelay / Ts;
 	float stepOutputDelay = outputDelay / Ts;
     int max_vel = 1;
