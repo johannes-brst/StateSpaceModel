@@ -21,22 +21,22 @@ MoveUr5e::~MoveUr5e()
 {
 }
 
-void MoveUr5e::saveData(std::string YYFile) const
+void MoveUr5e::saveData(std::string realPlantFile) const
 {
 	const static IOFormat CSVFormat(FullPrecision, DontAlignCols, ", ", "\n");
 
-	std::ofstream fileYY(YYFile);
-	fileYY.open(YYFile, std::ofstream::out | std::ofstream::trunc);
-	fileYY.close();
-	fileYY.open(YYFile, std::ofstream::out);
-	if (fileYY.is_open())
+	std::ofstream filerealPlant(realPlantFile);
+	filerealPlant.open(realPlantFile, std::ofstream::out | std::ofstream::trunc);
+	filerealPlant.close();
+	filerealPlant.open(realPlantFile, std::ofstream::out);
+	if (filerealPlant.is_open())
 	{
 		// Send data to the stream
-		for(int i = 0; i < YY.size(); ++i)
+		for(int i = 0; i < realPlant.size(); ++i)
 		{
-			fileYY << YY.at(i) << "\n";
+			filerealPlant << realPlant.at(i) << "\n";
 		}
-		fileYY.close();
+		filerealPlant.close();
 	}
 }
 
@@ -94,22 +94,18 @@ MatrixXd MoveUr5e::openData(std::string fileToOpen)
 void MoveUr5e::move()
 {
 	string path_to_csv = "csv/";
-	std::string inputSequenceFile = path_to_csv + "inputSequenceFileOutput.csv";
+	std::string inputSequenceFile = path_to_csv + "inputFile.csv";
 	MatrixXd inputSequence; 
 	inputSequence=openData(inputSequenceFile);
-    RTDEControlInterface rtde_control("127.0.0.1");
-    RTDEReceiveInterface rtde_receive("127.0.0.1");
+    RTDEControlInterface rtde_control("172.30.10.1");
+    RTDEReceiveInterface rtde_receive("172.30.10.1");
     std::vector<double> init_q = rtde_receive.getActualQ();
 
-    float Ts = 0.002; //sample Time
-    float Tstop = 20;
+    float Ts = 0.001; //sample Time
+    float Tstop = 10;
     float steps = Tstop / Ts;
 	printf("steps %f\n", steps);
-	float inputDelay = 0.00;
-	float outputDelay = 0.00;
-	float stepInputDelay = inputDelay / Ts;
-	float stepOutputDelay = outputDelay / Ts;
-    int max_vel = 1;
+    int max_vel = 3;
     std::vector<double> startpos = {-2.57, -1.57, 1.57, 0, 0, 0};
     std::vector<double> joint_speed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     rtde_control.moveJ(startpos);
@@ -121,7 +117,7 @@ void MoveUr5e::move()
 	{		
 		//printf("\n");
 		joint_speed[0] = sgn<float>(inputSequence(0,j))*max_vel;
-		std::cout << "Here is joint_speed[0]:\n" << joint_speed[0] << std::endl;
+		//std::cout << "Here is joint_speed[0]:\n" << joint_speed[0] << std::endl;
 		auto t_start = high_resolution_clock::now();
 		rtde_control.speedJ(joint_speed, std::abs(inputSequence(0,j)),0.0001);
 		auto t_stop = high_resolution_clock::now();
@@ -130,12 +126,12 @@ void MoveUr5e::move()
 		{
 			std::this_thread::sleep_for(std::chrono::duration<double>(Ts - t_duration.count()));
 		}
-		YY.push_back(rtde_receive.getActualQ().at(0));
+		realPlant.push_back(rtde_receive.getActualQ().at(0));
 		
 	}
 	rtde_control.speedStop();
     rtde_control.stopScript();
 	rtde_receive.disconnect();
-	saveData(path_to_csv + "YY.csv");
+	saveData(path_to_csv + "realPlant.csv");
 	return;
 }	

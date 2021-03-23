@@ -36,7 +36,7 @@ public:
 
 	~MoveUr5e();
 
-	void saveData(std::string YYFile) const;
+	void saveData(std::string realPlantFile) const;
 	// this function saves the data in "*.csv" files
 
 	MatrixXd openData(std::string fileToOpen);
@@ -47,7 +47,7 @@ public:
 private:
 	// MatrixXd is an Eigen typdef for Matrix<double, Dynamic, Dynamic>
 	MatrixXd inputSequence;  // input sequnce, dimensions: m\times  timeSamples
-	std::vector< float > YY;
+	std::vector< float > realPlant;
 	int m, n, r, timeSamples; //m - input dimension, n- state dimension, r-output dimension, timeSamples- number of time samples 
 
 };

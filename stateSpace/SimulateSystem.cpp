@@ -29,13 +29,13 @@ SimulateSystem::SimulateSystem()
 	timeRowVector.resize(1, 1); timeRowVector.setZero();
 }
 
-SimulateSystem::SimulateSystem(MatrixXd Amatrix, MatrixXd Bmatrix, MatrixXd Cmatrix, MatrixXd Dmatrix, MatrixXd initialState, MatrixXd inputSequenceMatrix, MatrixXd YYMatrix)
+SimulateSystem::SimulateSystem(MatrixXd Amatrix, MatrixXd Bmatrix, MatrixXd Cmatrix, MatrixXd Dmatrix, MatrixXd initialState, MatrixXd inputSequenceMatrix, MatrixXd realPlantMatrix)
 {
 	A = Amatrix; B = Bmatrix; C = Cmatrix; x0 = initialState; inputSequence = inputSequenceMatrix;
 	n = A.rows();
 	m = B.cols();
 	r = C.rows();
-	YY = YYMatrix;
+	realPlant = realPlantMatrix;
 	timeSamples = inputSequence.cols();
 
 	simulatedOutputSequence.resize(r, timeSamples); simulatedOutputSequence.setZero();
@@ -60,7 +60,7 @@ std::tuple<MatrixXd, MatrixXd, MatrixXd> SimulateSystem::getStateOuputTime()
 	return result;
 }
 
-void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string CFile, std::string DFile, std::string x0File, std::string inputSequenceFile, std::string simulatedStateSequenceFile, std::string simulatedOutputSequenceFile, std::string YYFile) const
+void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string CFile, std::string DFile, std::string x0File, std::string inputSequenceFile, std::string simulatedStateSequenceFile, std::string simulatedOutputSequenceFile, std::string realPlantFile) const
 {
 	const static IOFormat CSVFormat(FullPrecision, DontAlignCols, ", ", "\n");
 
@@ -124,18 +124,18 @@ void SimulateSystem::saveData(std::string AFile, std::string BFile, std::string 
 		fileSimulatedOutputSequence.close();
 	}
 
-	/*std::ofstream fileYY(YYFile);
-	fileYY.open(YYFile, std::ofstream::out | std::ofstream::trunc);
-	fileYY.close();
-	fileYY.open(YYFile, std::ofstream::out);
-	if (fileYY.is_open())
+	/*std::ofstream filerealPlant(realPlantFile);
+	filerealPlant.open(realPlantFile, std::ofstream::out | std::ofstream::trunc);
+	filerealPlant.close();
+	filerealPlant.open(realPlantFile, std::ofstream::out);
+	if (filerealPlant.is_open())
 	{
 		// Send data to the stream
-		for(int i = 0; i < YY.size(); ++i)
+		for(int i = 0; i < realPlant.size(); ++i)
 		{
-			fileYY << YY(i,0) << "\n";
+			filerealPlant << realPlant(i,0) << "\n";
 		}
-		fileYY.close();
+		filerealPlant.close();
 	}*/
 }
 
@@ -186,7 +186,7 @@ MatrixXd SimulateSystem::openData(std::string fileToOpen)
 }
 
 
-void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string Dfile,std::string x0File, std::string inputSequenceFile, std::string YYFile)
+void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string Dfile,std::string x0File, std::string inputSequenceFile, std::string realPlantFile)
 {
 	// this function acts as a constructor in some way. 
 	// call this function after a default constructor is being called
@@ -197,7 +197,7 @@ void SimulateSystem::openFromFile(std::string Afile, std::string Bfile, std::str
 	D = openData(Dfile);
 	x0= openData(x0File);
 	inputSequence=openData(inputSequenceFile);
-	YY= openData(YYFile);
+	realPlant= openData(realPlantFile);
 	n = A.rows();
 	m = B.cols();
 	r = C.rows();
@@ -223,8 +223,8 @@ void SimulateSystem::runSimulation()
     RTDEReceiveInterface rtde_receive("127.0.0.1");
     std::vector<double> init_q = rtde_receive.getActualQ();*/
 
-    float Ts = 0.002; //sample Time
-    float Tstop = 20;
+    float Ts = 0.001; //sample Time
+    float Tstop = 10;
     float steps = Tstop / Ts;
 	printf("steps %f\n", steps);
 	float inputDelay = 0.004;
@@ -251,15 +251,15 @@ void SimulateSystem::runSimulation()
 	simulatedStateSequence.col(0) = x0;
 	simulatedOutputSequence.col(0) = C * x0;
 
+	//delay not implemented
 	for (int j = 0; j < steps; j++)
 	{		
 		//printf("\n");
 		
-		if (((j - stepInputDelay) >= 0) && (j - stepOutputDelay) >= 0)
-		{
-			simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j - stepInputDelay);
-			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j - stepOutputDelay);
-		}	
+		
+			simulatedStateSequence.col(j+1) = Ad * simulatedStateSequence.col(j) + Bd * inputSequence.col(j);
+			simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j) + D * inputSequence.col(j);
+			
 		//std::cout << "Here is simulatedStateSequence.col(j):\n" << simulatedStateSequence.col(j) << std::endl;
 		//std::cout << "Here is simulatedOutputSequence.col(j):\n" << simulatedOutputSequence.col(j) << std::endl;
 	
@@ -273,21 +273,21 @@ void SimulateSystem::runSimulation()
 		{
 			std::this_thread::sleep_for(std::chrono::duration<double>(Ts - t_duration.count()));
 		}
-		YY.push_back(rtde_receive.getActualQ().at(0));*/
+		realPlant.push_back(rtde_receive.getActualQ().at(0));*/
 		
 	}
 	/*rtde_control.speedStop();
     rtde_control.stopScript();
 	rtde_receive.disconnect();*/
 
-	//float MAPE = mean(abs((YY-YSIM)./YY))*100; %mean absolute percentage error
+	//float MAPE = mean(abs((realPlant-YSIM)./realPlant))*100; %mean absolute percentage error
 	/*float result = 0;
-	for (int i = 0; i < YY.cols(); i++){
+	for (int i = 0; i < realPlant.cols(); i++){
 		
-		result =+ std::abs((YY(0,i) - simulatedOutputSequence(0,i))/YY(0,i));
+		result =+ std::abs((realPlant(0,i) - simulatedOutputSequence(0,i))/realPlant(0,i));
 		//printf("simulatedOutputSequence(0,i): %f\n",simulatedOutputSequence(0,i));
 	}
-	result = result / YY.cols();
+	result = result / realPlant.cols();
 	result = result * 100;
 	printf("MAPE = %f\n", result);*/
 }	

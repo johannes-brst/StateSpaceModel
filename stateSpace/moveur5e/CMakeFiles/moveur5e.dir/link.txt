@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmoveur5e.a  CMakeFiles/moveur5e.dir/MoveUr5e.cpp.o
-/usr/bin/ranlib libmoveur5e.a

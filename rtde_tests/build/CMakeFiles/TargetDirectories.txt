@@ -1,3 +1,0 @@
-/home/johnny/catkin_ws/src/StateSpaceModel/rtde_tests/build/CMakeFiles/rebuild_cache.dir
-/home/johnny/catkin_ws/src/StateSpaceModel/rtde_tests/build/CMakeFiles/rtde_test.dir
-/home/johnny/catkin_ws/src/StateSpaceModel/rtde_tests/build/CMakeFiles/edit_cache.dir

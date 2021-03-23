@@ -34,7 +34,7 @@ public:
 	// default constructor
 	// sets all the variables to 1x1 dimensional matrices and sets all the variables to zero
 	
-	SimulateSystem(MatrixXd Amatrix, MatrixXd Bmatrix, MatrixXd Cmatrix, MatrixXd Dmatrix, MatrixXd initialState, MatrixXd inputSequenceMatrix, MatrixXd YYMatrix);
+	SimulateSystem(MatrixXd Amatrix, MatrixXd Bmatrix, MatrixXd Cmatrix, MatrixXd Dmatrix, MatrixXd initialState, MatrixXd inputSequenceMatrix, MatrixXd realPlantMatrix);
 	// overloaded constructor assigns all the private variables 
 
 
@@ -48,14 +48,14 @@ public:
 	void runSimulation();
 	// function that simulates the system 
 
-	void saveData(std::string AFile, std::string BFile, std::string CFile,std::string DFile, std::string x0File, std::string inputSequenceFile, std::string simulatedStateSequenceFile, std::string simulatedOutputSequenceFile, std::string YYFile) const;
+	void saveData(std::string AFile, std::string BFile, std::string CFile,std::string DFile, std::string x0File, std::string inputSequenceFile, std::string simulatedStateSequenceFile, std::string simulatedOutputSequenceFile, std::string realPlantFile) const;
 	// this function saves the data in "*.csv" files
 	
 
 	MatrixXd openData(std::string fileToOpen);
 	// this function opens the "*.csv" file "fileToOpen" that stores a matrix, and loads the entries into the Eigen matrix MatrixXd
 	
-	void openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string DFile, std::string x0File, std::string inputSequenceFile, std::string YYFile);
+	void openFromFile(std::string Afile, std::string Bfile, std::string Cfile, std::string DFile, std::string x0File, std::string inputSequenceFile, std::string realPlantFile);
 
 	// this function assigns the A,B,C,x0, inputSequence variables using the information stored in the corresponding files 
 	// this function calls the function MatrixXd openData(std::string fileToOpen);
@@ -73,7 +73,7 @@ private:
 	MatrixXd simulatedStateSequence; //simulated state sequence, dimensions: n\times  timeSamples
 	MatrixXd simulatedOutputSequence; //simulated output sequence, dimensions: r\times  timeSamples
 	MatrixXd timeRowVector;           // time row vector [0,1,2,3,\ldots, timeSamples-1]
-	MatrixXd YY;
+	MatrixXd realPlant;
 	int m, n, r, timeSamples; //m - input dimension, n- state dimension, r-output dimension, timeSamples- number of time samples 
 
 };
